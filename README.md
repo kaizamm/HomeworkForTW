@@ -8,7 +8,7 @@ git clone https://github.com/kaizamm/HomeworkForTW.git
 vagrant up --provision
 ```
 
-### Results
+### Chorme for Results
 ```
-192.168.0.91:8080
+http://192.168.0.91:8080/
 ```
