@@ -1,0 +1,31 @@
+## files: Vagrantfile
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+hosts = {
+  "node-slave-02" => "192.168.0.91"
+}
+
+$script_master = <<SCRIPT
+  apt-add-repository ppa:ansible/ansible -y
+  apt-get update -y
+  apt-get install software-properties-common -y
+  apt-get install ansible -y
+  #ansible exec playbook
+  ansible-playbook /vagrant/playbook.yml
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.box_url = "https://app.vagrantup.com/ubuntu/boxes/trusty64"
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm",:id,"--memory",1024]
+  end
+  hosts.each do |name, ip|
+    config.vm.define name do |nodes|
+      nodes.vm.hostname = name
+      nodes.vm.network :private_network, ip: ip
+      nodes.vm.synced_folder ".","/vagrant"
+      config.vm.provision "shell", inline: $script_master
+      end
+    end
+  end

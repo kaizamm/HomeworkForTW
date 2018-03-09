@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+  any_errors_fatal: true
+  tasks:
+  - name:    Install prerequisites
+    apt:     name={{item}} state=present
+    with_items:
+     - apt-transport-https
+     - ca-certificates
+     -  curl
+     - software-properties-common
+  - name: curl docker key
+    shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg |apt-key add -
+  - name:    Add Docker GPG key
+    apt_key:
+      id: 0EBFCD88
+      url:  https://download.docker.com/linux/ubuntu/gpg
+      state: present
+  - name:    Add Docker APT repository
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+  - name:    Install Docker
+    apt:     name=docker-ce
+  - name:   Ensure docker-daemon running
+    service:
+      name:  docker
+      state:  started
+  - name: Git clone project
+    git:
+      repo: https://github.com/kaizamm/simple-java-maven-app.git
+      dest: /tmp/homework
+  - name:  docker build install pluings and mvn
+    chdir:  /tmp/homework
+    command:  docker build --no-cache -t my_jenkins .
+  - name: docker rm -f my_cicd
+    block:
+      - debug: msg="docker rm -f my_cicd"
+      - command: docker rm -f my_cicd
+    rescue:
+      - debug: msg="docker name of my_cicd not exists,continue"
+    always:
+      - debug: msg="environment is OK"
+  - name:    docker run jenkins container
+    command:  docker run -d --name=my_cicd --env JAVA_OPTS=-Djenkins.install.runSetupWizard=false -p 8080:8080 -p 50000:50000
+                           -v /var/jenkins_home my_jenkins
+  - name: Wait 300 seconds for port 8000 to become open on the host, don't start checking for 10 seconds
+    wait_for:
+      port: 8080
+      delay: 6
+  - name: docker exec my_cicd cp /tmp/cicd  /var/jenkins_home/jobs -a
+    command: docker exec my_cicd cp /tmp/cicd  /var/jenkins_home/jobs -a
+  - name: restart docker
+    command: docker restart my_cicd
+  - name: This machine ip is as follows
+    debug: var=ansible_all_ipv4_addresses[1]
+  - name: Congrations,Well Done!
+    debug: msg="http://192.168.0.91:8080"
