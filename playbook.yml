@@ -31,7 +31,7 @@
       dest: /tmp/homework
   - name:  docker build install pluings and mvn
     chdir:  /tmp/homework
-    command:  docker build --no-cache -t my_jenkins .
+    command:  docker build --no-cache -t my_jenkins /tmp/homework
   - name: docker rm -f my_cicd
     block:
       - debug: msg="docker rm -f my_cicd"
