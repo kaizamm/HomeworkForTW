@@ -5,6 +5,7 @@ git clone https://github.com/kaizamm/HomeworkForTW.git
 
 ### vagrant up
 ```
+cd HomeworkForTW
 vagrant up --provision
 ```
 
